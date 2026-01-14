@@ -13,5 +13,38 @@ const staticTypeChecker = () => {
 
 }
 
+
+/*
+* TypeScript는 JavaScript와 어떤 관계일까?
+*
+* 구문(Syntax)
+* TypeScript는 JS의 구문이 허용되는, JavaScript의 상위집합 언어이다.
+*
+* */
+
+// @errors: 1005
+// let a = (4 -> 닫는 괄호가 없음. 구문 오류
+
+/*
+* TypeScript는 독특한 구문 때문에 JavaScript 코드를 오류로 보지 않는다.
+* 어떻게 작성되어있는지 모르지만 작동하는 JavaScript 코드를 TypeScript 파일에 넣어도 잘 작동한다.
+*
+* TypeScript는 다른 종류의 값들을 사용할 수 있는 방법이 추가된, 타입이 있는 상위 집합
+* */
+
+console.log(4 / []);    // 구문적으로 옳은(syntactically-lega) 코드, JavaScript 에서 NaN 출력
+
+/*
+* TypeScript 는 배열로 숫자를 나누는 연산이 옳지 않다고 판단하고 오류 발생시킴
+*
+* @errors: 2363
+* console.log(4 / []);
+*
+*
+* TypeScript는 컴파일-타임 타입 검사자가 있는 JavaScript의 런타임
+* */
+
+
+
 staticTypeChecker();
 
