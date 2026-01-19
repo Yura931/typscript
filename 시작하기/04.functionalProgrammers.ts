@@ -230,6 +230,162 @@ type Email = string & { readonly __email: unique symbol };
 * TypeScript식 newtype 흉내
 * */
 
+/*
+* 판별 유니언(Discriminated Unions)
+* */
+
+type Shape =
+    | { kind: "circle"; radius: number }
+    | { kind: "square"; x: number }
+    | { kind: "triangle"; x: number, y: number };
+
+/*
+ * kind가 리터럴 타입("circle" | "square" | "triangle") 을 가지며
+ * 모든 멤버가 공통으로 kind 라는 속성을 가짐
+ * 이 조합을 판별 유니언이라고 부른다.
+ *
+ * kind 값을 검사하면 TypeScript가 자동으로 나머지 필드를 추론한다.
+ */
+
+
+// TypeScript는 조건문을 따라가며 s의 타입을 점점 좁힌다.
+function area(s: Shape) {
+    if(s.kind === "circle") {
+        // s: { kind: "circle", radius: number }
+        return Math.PI * s.radius * s.radius;
+    } else if (s.kind === "square") {
+        // s: { kind: "square", x: number }
+        return s.x * s.x;
+    } else {
+        // s: { kind: "triangle", x: number, y: number } = 앞의 두 경우 제외, 남은 경우는 triangle 뿐 이라는 것을 TS가 안다.
+        return (s.x * s.y) / 2;
+    }
+}
+/*
+* area()의 리턴타입이 number인 이유
+* TypeScript는 다음을 확인
+* - 모든 코드 경로에서 return이 존재하는가? = 모든 경로에서 number를 반환, 빠지는 케이스 없음
+* - 각 return의 타입이 무엇인가?
+* 리턴 타입 number로 추론
+* function area(s: Shape): number - 리턴타입을 명시적으로 쓰지 않아도 동일하다.
+* */
+
+function area2(s: Shape): number | undefined {
+    if (s.kind === "circle") {
+        return Math.PI * s.radius * s.radius;
+    } else if (s.kind === "square") {
+        return s.x * s.x;
+    }
+    // triangle 처리 안함 → undefined
+}
+
+function area3(s: Shape): number {
+    switch (s.kind) {
+        case "circle":
+            return Math.PI * s.radius * s.radius;
+        case "square":
+            return s.x * s.x;
+        case "triangle":
+            return (s.x * s.y) / 2;
+        default:
+            return shapeNever(s);
+    }
+}
+
+function shapeNever(s: never): never {
+    throw new Error('error');
+}
+
+function height(s: Shape) {
+    if (s.kind === "circle") {
+        return 2 * s.radius;
+    } else {
+        return s.x;
+    }
+}
+
+/*
+* 타입 매개변수(type Parameters)
+* 대부분의 C-계열 언어처럼, TypeScript는 타입 매개변수의 선언을 요구한다.
+*
+* 대소문자에 대한 요구 조건은 없지만, 타입 매개 변수는 일반적으로 단일 대문자이다.
+* 타입 매개 변수는 타입 클래스 제약과 비슷하게 동작하는 타입으로 제한될 수 있다.
+* 타입 매개변수는 매개변수를 같은 타입으로 제한하는 것처럼 타입 정보를 전파하는데만 쓰여야 한다.
+* */
+
+function lifeArray<T>(t: T): Array<T> {
+    return [t];
+}
+
+function firstish<T extends { length: number }>(t1: T, t2: T): T {
+    return t1.length > t2.length ? t1 : t2;
+}
+
+// T는 필요하지 않다. 오직 한 번만 참조되며, 다른 매개변수나 리턴 값의 타입을 제한하는데 사용되지 않는다는 것을 알아둬야 한다.
+function length1<T extends ArrayLike<unknown>>(t: T): number {
+    return 0;
+}
+
+function length2(t: ArrayLike<unknown>): number {
+    return 1;
+}
+
+/*
+* 상위 유형의 타입(Higher-kinded types)
+* TypeScript는 상위 유형의 타입이 없다.
+* function length<T extends ArrayLike<unknown>, U>(m: T<U>) {} 허용하지 않음
+* */
+
+/*
+* readonly와 const
+* JavaScript 에서 수정 가능함이 기본이지만, 참조가 수정 불가능함을 선언하기 위해 const로 변수를 선언할 수 있다.
+* 참조 대상은 여전히 수정 가능하다.
+* */
+
+const a = [1, 2, 3];
+a.push(102);
+a[0] = 101;
+
+console.log('a: ', a);
+
+/*
+* TypeScript는 추가적으로 프로퍼티에 readonly 제어자를 사용할 수 있다.
+* */
+
+interface Rx {
+    readonly x: number;
+}
+
+let rx: Rx = { x: 1};
+console.log('x: ', x);
+// rx.x = 12; error 읽기만 가능
+
+interface X {
+    x: number;
+}
+
+// 매핑된 타입 Readonly<T>는 모든 프로퍼티를 readonly로 만들어 버린다.
+let rx2: Readonly<X> = { x: 1 };
+// rx2.x = 12; 에러
+
+
+let a1: ReadonlyArray<number> = [1, 2, 3];
+let b1: readonly number[] = [1, 2, 3];
+/*
+* a1.push(102);
+* b1[0] = 10;
+* 둘 다 에러
+*/
+
+/*
+* 배열과 객체 리터럴에서 동작하는ㄴ const-assertion만 사용할 수 있다.
+* */
+let a2 = [1, 2, 3,] as const;
+/*
+* a2.push(102);
+* a2[0] = 101; 에러
+* */
+
 
 
 
